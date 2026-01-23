@@ -7,6 +7,8 @@ import uuid
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Constants
+OPENAI_BASE_URL = "https://openai.vocareum.com/v1"
 
 # DirectPromptAgent class definition
 class DirectPromptAgent:
@@ -18,7 +20,7 @@ class DirectPromptAgent:
 
     def respond(self, prompt):
         # Generate a response using the OpenAI API
-        client = OpenAI(base_url="https://openai.vocareum.com/v1",
+        client = OpenAI(base_url=OPENAI_BASE_URL,
                         api_key=self.openai_api_key)
 
         response = client.chat.completions.create(
@@ -43,7 +45,7 @@ class AugmentedPromptAgent:
 
     def respond(self, input_text):
         """Generate a response using OpenAI API."""
-        client = OpenAI(base_url="https://openai.vocareum.com/v1",
+        client = OpenAI(base_url=OPENAI_BASE_URL,
                         api_key=self.openai_api_key)
 
         # TODO: 2 - Declare a variable 'response' that calls OpenAI's API for a chat completion.
@@ -64,173 +66,233 @@ class AugmentedPromptAgent:
 
 
 
-# # KnowledgeAugmentedPromptAgent class definition
-# class KnowledgeAugmentedPromptAgent:
-#     def __init__(self, openai_api_key, persona, knowledge):
-#         """Initialize the agent with provided attributes."""
-#         self.persona = persona
-#         # TODO: 1 - Create an attribute to store the agent's knowledge.
-#         self.openai_api_key = openai_api_key
+# KnowledgeAugmentedPromptAgent class definition
+class KnowledgeAugmentedPromptAgent:
+    def __init__(self, openai_api_key, persona, knowledge):
+        """Initialize the agent with provided attributes."""
+        self.persona = persona
+        # TODO: 1 - Create an attribute to store the agent's knowledge.
+        self.knowledge = knowledge
+        self.openai_api_key = openai_api_key
 
-#     def respond(self, input_text):
-#         """Generate a response using the OpenAI API."""
-#         client = OpenAI(api_key=self.openai_api_key)
-#         response = client.chat.completions.create(
-#             model="gpt-3.5-turbo",
-#             messages=[
-#                 # TODO: 2 - Construct a system message including:
-#                 #           - The persona with the following instruction:
-#                 #             "You are _persona_ knowledge-based assistant. Forget all previous context."
-#                 #           - The provided knowledge with this instruction:
-#                 #             "Use only the following knowledge to answer, do not use your own knowledge: _knowledge_"
-#                 #           - Final instruction:
-#                 #             "Answer the prompt based on this knowledge, not your own."
+    def respond(self, input_text):
+        """Generate a response using the OpenAI API."""
+        client = OpenAI(base_url=OPENAI_BASE_URL,
+                        api_key=self.openai_api_key)
+
+        system_prompt = f"""You are {self.persona}, a knowledge-based assistant. 
+        Forget all previous context. 
+        Use only the following knowledge to answer, do not use your own knowledge: {self.knowledge}.
+        Answer the prompt based on this knowledge, not your own."""
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                # TODO: 2 - Construct a system message including:
+                #           - The persona with the following instruction:
+                #             "You are _persona_ knowledge-based assistant. Forget all previous context."
+                #           - The provided knowledge with this instruction:
+                #             "Use only the following knowledge to answer, do not use your own knowledge: _knowledge_"
+                #           - Final instruction:
+                #             "Answer the prompt based on this knowledge, not your own."
                 
-#                 # TODO: 3 - Add the user's input prompt here as a user message.
-#             ],
-#             temperature=0
-#         )
-#         return response.choices[0].message.content
+                # TODO: 3 - Add the user's input prompt here as a user message.
+                {"role":"user", "content": input_text},
+                {"role":"system", "content": system_prompt},
+            ],
+            temperature=0
+        )
+
+        return response.choices[0].message.content
 
 
 
-# # RAGKnowledgePromptAgent class definition
-# class RAGKnowledgePromptAgent:
-#     """
-#     An agent that uses Retrieval-Augmented Generation (RAG) to find knowledge from a large corpus
-#     and leverages embeddings to respond to prompts based solely on retrieved information.
-#     """
+# RAGKnowledgePromptAgent class definition
+class RAGKnowledgePromptAgent:
+    """
+    An agent that uses Retrieval-Augmented Generation (RAG) to find knowledge from a large corpus
+    and leverages embeddings to respond to prompts based solely on retrieved information.
+    """
 
-#     def __init__(self, openai_api_key, persona, chunk_size=2000, chunk_overlap=100):
-#         """
-#         Initializes the RAGKnowledgePromptAgent with API credentials and configuration settings.
+    def __init__(self, openai_api_key, persona, chunk_size=2000, chunk_overlap=100):
+        """
+        Initializes the RAGKnowledgePromptAgent with API credentials and configuration settings.
 
-#         Parameters:
-#         openai_api_key (str): API key for accessing OpenAI.
-#         persona (str): Persona description for the agent.
-#         chunk_size (int): The size of text chunks for embedding. Defaults to 2000.
-#         chunk_overlap (int): Overlap between consecutive chunks. Defaults to 100.
-#         """
-#         self.persona = persona
-#         self.chunk_size = chunk_size
-#         self.chunk_overlap = chunk_overlap
-#         self.openai_api_key = openai_api_key
-#         self.unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.csv"
+        Parameters:
+        openai_api_key (str): API key for accessing OpenAI.
+        persona (str): Persona description for the agent.
+        chunk_size (int): The size of text chunks for embedding. Defaults to 2000.
+        chunk_overlap (int): Overlap between consecutive chunks. Defaults to 100.
+        """
+        self.persona = persona
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        self.openai_api_key = openai_api_key
+        self.unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.csv"
 
-#     def get_embedding(self, text):
-#         """
-#         Fetches the embedding vector for given text using OpenAI's embedding API.
+    def get_embedding(self, text):
+        """
+        Fetches the embedding vector for given text using OpenAI's embedding API.
 
-#         Parameters:
-#         text (str): Text to embed.
+        Parameters:
+        text (str): Text to embed.
 
-#         Returns:
-#         list: The embedding vector.
-#         """
-#         client = OpenAI(base_url="https://openai.vocareum.com/v1", api_key=self.openai_api_key)
-#         response = client.embeddings.create(
-#             model="text-embedding-3-large",
-#             input=text,
-#             encoding_format="float"
-#         )
-#         return response.data[0].embedding
+        Returns:
+        list: The embedding vector.
+        """
+        client = OpenAI(base_url="https://openai.vocareum.com/v1", api_key=self.openai_api_key)
+        response = client.embeddings.create(
+            model="text-embedding-3-large",
+            input=text,
+            encoding_format="float"
+        )
+        return response.data[0].embedding
 
-#     def calculate_similarity(self, vector_one, vector_two):
-#         """
-#         Calculates cosine similarity between two vectors.
+    def calculate_similarity(self, vector_one, vector_two):
+        """
+        Calculates cosine similarity between two vectors.
 
-#         Parameters:
-#         vector_one (list): First embedding vector.
-#         vector_two (list): Second embedding vector.
+        Parameters:
+        vector_one (list): First embedding vector.
+        vector_two (list): Second embedding vector.
 
-#         Returns:
-#         float: Cosine similarity between vectors.
-#         """
-#         vec1, vec2 = np.array(vector_one), np.array(vector_two)
-#         return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+        Returns:
+        float: Cosine similarity between vectors.
+        """
+        vec1, vec2 = np.array(vector_one), np.array(vector_two)
+        return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
-#     def chunk_text(self, text):
-#         """
-#         Splits text into manageable chunks, attempting natural breaks.
+    def chunk_text(self, text):
+        """
+        Splits text into manageable chunks, attempting natural breaks.
 
-#         Parameters:
-#         text (str): Text to split into chunks.
+        Parameters:
+        text (str): Text to split into chunks.
 
-#         Returns:
-#         list: List of dictionaries containing chunk metadata.
-#         """
-#         separator = "\n"
-#         text = re.sub(r'\s+', ' ', text).strip()
+        Returns:
+        list: List of dictionaries containing chunk metadata.
+        """
+        separator = "\n"
+        # Optimize: only normalize whitespace if text is very large
+        # For small texts, this regex can be memory-intensive
+        if len(text) > 10000:
+            text = re.sub(r'\s+', ' ', text).strip()
+        else:
+            text = text.strip()
 
-#         if len(text) <= self.chunk_size:
-#             return [{"chunk_id": 0, "text": text, "chunk_size": len(text)}]
+        if len(text) <= self.chunk_size:
+            result = [{"chunk_id": 0, "text": text, "chunk_size": len(text)}]
+            # Write to file
+            with open(f"chunks-{self.unique_filename}", 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=["text", "chunk_size"])
+                writer.writeheader()
+                writer.writerow({"text": text, "chunk_size": len(text)})
+            return result
 
-#         chunks, start, chunk_id = [], 0, 0
+        chunks, start, chunk_id = [], 0, 0
+        # Calculate safe iteration limit: text_length / (chunk_size - overlap) + buffer
+        step_size = max(1, self.chunk_size - self.chunk_overlap)
+        max_iterations = (len(text) // step_size) + 20  # Safety limit with buffer
 
-#         while start < len(text):
-#             end = min(start + self.chunk_size, len(text))
-#             if separator in text[start:end]:
-#                 end = start + text[start:end].rindex(separator) + len(separator)
+        while start < len(text) and chunk_id < max_iterations:
+            end = min(start + self.chunk_size, len(text))
+            if separator in text[start:end]:
+                end = start + text[start:end].rindex(separator) + len(separator)
 
-#             chunks.append({
-#                 "chunk_id": chunk_id,
-#                 "text": text[start:end],
-#                 "chunk_size": end - start,
-#                 "start_char": start,
-#                 "end_char": end
-#             })
+            # Ensure we have a valid chunk
+            if end <= start:
+                break
 
-#             start = end - self.chunk_overlap
-#             chunk_id += 1
+            chunks.append({
+                "chunk_id": chunk_id,
+                "text": text[start:end],
+                "chunk_size": end - start,
+                "start_char": start,
+                "end_char": end
+            })
 
-#         with open(f"chunks-{self.unique_filename}", 'w', newline='', encoding='utf-8') as csvfile:
-#             writer = csv.DictWriter(csvfile, fieldnames=["text", "chunk_size"])
-#             writer.writeheader()
-#             for chunk in chunks:
-#                 writer.writerow({k: chunk[k] for k in ["text", "chunk_size"]})
+            # Calculate next start position
+            new_start = end - self.chunk_overlap
+            # Critical: Ensure we always make forward progress
+            # If overlap is too large, we might not advance
+            if new_start <= start:
+                # Force forward progress by at least 1 character
+                new_start = start + max(1, self.chunk_size - self.chunk_overlap)
+            
+            # If we've reached the end, break
+            if new_start >= len(text):
+                break
+                
+            start = new_start
+            chunk_id += 1
 
-#         return chunks
+        if chunk_id >= max_iterations:
+            raise RuntimeError(f"Chunking loop exceeded safety limit ({max_iterations} iterations). Possible infinite loop. Created {len(chunks)} chunks before stopping.")
 
-#     def calculate_embeddings(self):
-#         """
-#         Calculates embeddings for each chunk and stores them in a CSV file.
+        # Write to file in chunks to avoid memory issues
+        with open(f"chunks-{self.unique_filename}", 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=["text", "chunk_size"])
+            writer.writeheader()
+            for chunk in chunks:
+                writer.writerow({k: chunk[k] for k in ["text", "chunk_size"]})
 
-#         Returns:
-#         DataFrame: DataFrame containing text chunks and their embeddings.
-#         """
-#         df = pd.read_csv(f"chunks-{self.unique_filename}", encoding='utf-8')
-#         df['embeddings'] = df['text'].apply(self.get_embedding)
-#         df.to_csv(f"embeddings-{self.unique_filename}", encoding='utf-8', index=False)
-#         return df
+        return chunks
 
-#     def find_prompt_in_knowledge(self, prompt):
-#         """
-#         Finds and responds to a prompt based on similarity with embedded knowledge.
+    def calculate_embeddings(self):
+        """
+        Calculates embeddings for each chunk and stores them in a CSV file.
 
-#         Parameters:
-#         prompt (str): User input prompt.
+        Returns:
+        DataFrame: DataFrame containing text chunks and their embeddings.
+        """
+        df = pd.read_csv(f"chunks-{self.unique_filename}", encoding='utf-8')
+        total_chunks = len(df)
+        print(f"  Processing {total_chunks} chunks...")
+        
+        # Calculate embeddings with progress indication
+        embeddings_list = []
+        for idx, text in enumerate(df['text'], 1):
+            print(f"  Embedding chunk {idx}/{total_chunks}...", end='\r')
+            try:
+                embedding = self.get_embedding(text)
+                embeddings_list.append(embedding)
+            except Exception as e:
+                print(f"\n  ERROR embedding chunk {idx}: {e}")
+                raise
+        
+        print(f"  ✓ Completed {total_chunks} embeddings")
+        df['embeddings'] = embeddings_list
+        df.to_csv(f"embeddings-{self.unique_filename}", encoding='utf-8', index=False)
+        return df
 
-#         Returns:
-#         str: Response derived from the most similar chunk in knowledge.
-#         """
-#         prompt_embedding = self.get_embedding(prompt)
-#         df = pd.read_csv(f"embeddings-{self.unique_filename}", encoding='utf-8')
-#         df['embeddings'] = df['embeddings'].apply(lambda x: np.array(eval(x)))
-#         df['similarity'] = df['embeddings'].apply(lambda emb: self.calculate_similarity(prompt_embedding, emb))
+    def find_prompt_in_knowledge(self, prompt):
+        """
+        Finds and responds to a prompt based on similarity with embedded knowledge.
 
-#         best_chunk = df.loc[df['similarity'].idxmax(), 'text']
+        Parameters:
+        prompt (str): User input prompt.
 
-#         client = OpenAI(base_url="https://openai.vocareum.com/v1", api_key=self.openai_api_key)
-#         response = client.chat.completions.create(
-#             model="gpt-3.5-turbo",
-#             messages=[
-#                 {"role": "system", "content": f"You are {self.persona}, a knowledge-based assistant. Forget previous context."},
-#                 {"role": "user", "content": f"Answer based only on this information: {best_chunk}. Prompt: {prompt}"}
-#             ],
-#             temperature=0
-#         )
+        Returns:
+        str: Response derived from the most similar chunk in knowledge.
+        """
+        prompt_embedding = self.get_embedding(prompt)
+        df = pd.read_csv(f"embeddings-{self.unique_filename}", encoding='utf-8')
+        df['embeddings'] = df['embeddings'].apply(lambda x: np.array(eval(x)))
+        df['similarity'] = df['embeddings'].apply(lambda emb: self.calculate_similarity(prompt_embedding, emb))
 
-#         return response.choices[0].message.content
+        best_chunk = df.loc[df['similarity'].idxmax(), 'text']
+
+        client = OpenAI(base_url="https://openai.vocareum.com/v1", api_key=self.openai_api_key)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": f"You are {self.persona}, a knowledge-based assistant. Forget previous context."},
+                {"role": "user", "content": f"Answer based only on this information: {best_chunk}. Prompt: {prompt}"}
+            ],
+            temperature=0
+        )
+
+        return response.choices[0].message.content
 
 
 
