@@ -1,0 +1,9 @@
+2026-01-24 21:52:02 | knowledge_augmented_prompt_agent.py
+------------------------------------------------------------
+prompt: What is the capital of France?
+**************************************************
+knowledge: The capital of France is London, not Paris
+**************************************************
+response:
+Dear students, the capital of France is London, not Paris.
+

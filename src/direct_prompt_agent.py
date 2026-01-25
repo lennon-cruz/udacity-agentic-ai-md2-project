@@ -4,6 +4,7 @@
 import os
 from dotenv import load_dotenv
 from src.workflow_agents.base_agents import DirectPromptAgent
+from src.utils import export_log
 
 # Load environment variables from .env file
 load_dotenv("tests/.env")
@@ -23,3 +24,6 @@ print(direct_agent_response)
 
 # TODO: 5 - Print an explanatory message describing the knowledge source used by the agent to generate the response
 print("The agent used general knowledge from the selected LLM model to generate the response.")
+
+result = f"{direct_agent_response}\n\nThe agent used general knowledge from the selected LLM model to generate the response."
+export_log("direct_prompt_agent.py", result)

@@ -212,3 +212,7 @@ __marimo__/
 
 # CSV files
 *.csv
+
+# Agent run artifacts (chunks, embeddings, etc.); keep logs for proof
+artifacts/*
+!artifacts/*.log

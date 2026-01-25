@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 # TODO: 1 - Import the AugmentedPromptAgent class
 from src.workflow_agents.base_agents import AugmentedPromptAgent
+from src.utils import export_log
 
 # Load environment variables from .env file
 load_dotenv("tests/.env")
@@ -25,3 +26,6 @@ print(augmented_agent_response)
 # - How the system prompt specifying the persona affected the agent's response.
 print("The agent used general knowledge from the selected LLM model to generate the response.")
 print("The persona affected the agent's response by making it more specific and relevant to the user's prompt.")
+
+result = f"{augmented_agent_response}\n\nThe agent used general knowledge from the selected LLM model to generate the response.\nThe persona affected the agent's response by making it more specific and relevant to the user's prompt."
+export_log("augmented_prompt_agent.py", result)

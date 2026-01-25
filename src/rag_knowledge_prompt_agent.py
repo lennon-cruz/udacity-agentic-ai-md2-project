@@ -2,6 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from src.workflow_agents.base_agents import RAGKnowledgePromptAgent
+from src.utils import export_log
 
 # Load environment variables from .env file (try multiple locations)
 load_dotenv("tests/.env")
@@ -87,6 +88,7 @@ try:
     prompt_answer = RAG_knowledge_prompt_agent.find_prompt_in_knowledge(prompt)
     print("\nResponse:")
     print(prompt_answer)
+    export_log("rag_knowledge_prompt_agent.py", f"prompt: {prompt}\n{'*'*50}\nResponse:\n{prompt_answer}")
 except Exception as e:
     print(f"ERROR during prompt processing: {e}")
     import traceback

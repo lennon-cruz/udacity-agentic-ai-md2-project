@@ -2,6 +2,7 @@
 import os
 from dotenv import load_dotenv
 from src.workflow_agents.base_agents import KnowledgeAugmentedPromptAgent
+from src.utils import export_log
 
 # Load environment variables from the .env file
 load_dotenv("tests/.env")
@@ -25,3 +26,6 @@ print("knowledge:", knowledge)
 print("*"*50)
 print("response:")
 print(knwowledge_agent_response)
+
+result = f"prompt: {prompt}\n{'*'*50}\nknowledge: {knowledge}\n{'*'*50}\nresponse:\n{knwowledge_agent_response}"
+export_log("knowledge_augmented_prompt_agent.py", result)
