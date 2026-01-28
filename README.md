@@ -1,66 +1,119 @@
-# Project Overview
-
 ## Introduction
 
-Welcome to the project AI-Powered Agentic Workflow for Project Management! Imagine yourself as a highly sought-after AI Workflow Architect who specializes in implementing intelligent agentic systems that don't just automate tasks, but dynamically *manage* them. Your newest client, **InnovateNext Solutions**, a rapidly scaling startup brimming with brilliant ideas but hampered by inconsistent project execution, has a critical challenge they believe only *you* can solve.
+This repository is my Udacity **Agentic AI (MD2)** project: a small **agent library** (Phase 1) plus a working **agentic workflow** (Phase 2) that turns an input product spec into user stories, features, and engineering tasks for the “Email Router” pilot.
 
-They are seeking a revolutionary way to manage their entire product development lifecycle. Your goal is to step in and engineer a sophisticated, **reusable agentic workflow**. This agentic workflow will assist the existing technical project managers (TPMs) on their team by ensuring their *various* product ideas can be *consistently and scalably* transformed into well-defined user stories, product features, and detailed engineering tasks. You will pioneer this system by first applying it to their upcoming "Email Router" project as a pilot.
+## Project structure (high level)
 
-## The Challenge: Building a Scalable Engine for Innovation
+- `src/workflow_agents/base_agents.py`: reusable agent classes (Phase 1)
+- `src/*.py`: standalone scripts to run/test each agent
+- `agentic_workflow.py`: Phase 2 workflow orchestration (Email Router pilot)
+- `Product-Spec-Email-Router.txt`: input product specification document
+- `artifacts/`: saved run outputs/logs (submission evidence)
 
-TPMs at InnovateNext Solutions are overburdened and face a significant bottleneck: due to their significant workload, turning the multiple product ideas they are handling into actionable development plans is leading to miscommunications, varied output quality, and delays across *all* their projects. They need a foundational, AI-driven project management framework that can be applied company-wide.
+## Setup
 
-Your role as an AI Workflow Architect is twofold:
-1. First, you'll construct a robust library of diverse, reusable AI agents – the versatile building blocks for this and future advanced agentic systems. This is about crafting your core, adaptable toolkit.
-2. Then, you'll deploy a selection of these agents to build the **general-purpose agentic workflow for technical project management**. You will demonstrate its power and flexibility by using their "Email Router" product specification (`Product-Spec-Email-Router.txt`) as the initial input for this pilot implementation.
+### Prereqs
 
-The **Audience** for your solution are the technical project managers and the leadership team, particularly the Head of Product and Lead Technical Program Manager, at InnovateNext Solutions. They are looking for a robust system that not only works for the Email Router but also assists the technical project managers at InnovateNext for future product development.
+- **Python**: `3.12` (see `.python-version`)
+- **uv**: install via your preferred method (brew/pipx/etc.)
 
-## Your Product: AI-Powered Agentic Workflow for Project Management (Pilot: Email Router)
+### Install dependencies (recommended: uv)
 
-You will deliver a two-part solution:
+From repo root:
 
-**Phase 1: The Agentic Toolkit**
-- A Python package (`workflow_agents`) containing seven meticulously crafted and individually tested agent classes (`base_agents.py`):
+```bash
+uv sync
+```
+
+Notes:
+- Dependencies are defined in `pyproject.toml` and locked in `uv.lock`.
+- You typically don’t need to manually activate a venv when using `uv run`.
+
+### Optional: create/activate a venv (if you want one)
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+uv pip install -e .
+```
+
+### Environment variables (.env)
+
+Most scripts load credentials from `tests/.env` (see `load_dotenv("tests/.env")`).
+
+Create it:
+
+```bash
+mkdir -p tests
+printf "OPENAI_API_KEY=YOUR_KEY_HERE\n" > tests/.env
+```
+
+## How to run
+
+### Phase 2 workflow (recommended entrypoint)
+
+From repo root:
+
+```bash
+uv run python agentic_workflow.py
+```
+
+### Run individual Phase 1 agent scripts
+
+From repo root:
+
+```bash
+uv run python src/direct_prompt_agent.py
+uv run python src/augmented_prompt_agent.py
+uv run python src/knowledge_augmented_prompt_agent.py
+uv run python src/rag_knowledge_prompt_agent.py
+uv run python src/evaluation_agent.py
+uv run python src/routing_agent.py
+uv run python src/action_planning_agent.py
+```
+
+If you ever hit import issues when running by file path, run as a module instead:
+
+```bash
+uv run python -m src.direct_prompt_agent
+```
+
+## Solution overview
+
+### Phase 1 (Agentic Toolkit)
+
+- Implemented the reusable agent classes in `src/workflow_agents/base_agents.py`:
   - `DirectPromptAgent`
   - `AugmentedPromptAgent`
   - `KnowledgeAugmentedPromptAgent`
-  - `RAGKnowledgePromptAgent` (provided, but understand its role)
+  - `RAGKnowledgePromptAgent`
   - `EvaluationAgent`
   - `RoutingAgent`
   - `ActionPlanningAgent`
-- Standalone test scripts for each agent, proving their individual capabilities, along with screenshots of successful test runs.
+- Added standalone run scripts under `src/` to demonstrate each agent works.
 
-**Phase 2: The Project Management Workflow Implementation**
-- A primary Python script (`agentic_workflow.py`) that orchestrates a selection of your Phase 1 agents (`ActionPlanningAgent`, `KnowledgeAugmentedPromptAgent`, `EvaluationAgent`, `RoutingAgent`) to perform the multi-step technical project management task. This script will be designed as a **general-purpose workflow**.
-- For the pilot, this workflow will:
-  1. Accept a high-level prompt (simulating a TPM's request) and InnovateNext's `Product-Spec-Email-Router.txt` (as the example product spec).
-  2. Employ an **Action Planning Agent** to break down the overall goal into logical sub-tasks.
-  3. Utilize a **Routing Agent** to intelligently assign each sub-task to the appropriate specialized agent team.
-  4. Simulate a **Product Manager** team (a `KnowledgeAugmentedPromptAgent` for generating user stories based on the provided product spec, paired with an `EvaluationAgent` to ensure stories meet specific criteria).
-  5. Simulate a **Program Manager** team (a `KnowledgeAugmentedPromptAgent` for defining product features, paired with an `EvaluationAgent` to ensure features meet criteria).
-  6. Simulate a **Development Engineer** team (a `KnowledgeAugmentedPromptAgent` for creating detailed engineering tasks, paired with an `EvaluationAgent` to ensure tasks meet criteria).
-  7. Produce a final, structured output representing the comprehensively planned project (for the Email Router), demonstrating the workflow's capability.
+### Phase 2 (Agentic Workflow)
 
-## Project Submission
+- Implemented `agentic_workflow.py` to orchestrate the workflow:
+  - Loads `Product-Spec-Email-Router.txt`
+  - Uses `ActionPlanningAgent` to generate workflow steps
+  - Uses `RoutingAgent` to send each step to the right role support function:
+    - Product Manager → user stories (validated by an `EvaluationAgent`)
+    - Program Manager → features (validated by an `EvaluationAgent`)
+    - Development Engineer → engineering tasks (validated by an `EvaluationAgent`)
+  - Prints + logs the step-by-step results and final output
 
-At the end of the project, you will need to submit the following documents for review:
-1. **Phase 1:**
-   - Fully implemented reusable agent library (`workflow_agents/base_agents.py`).
-   - Test scripts for each agent in the reusable agent library.
-   - Outputs from running the seven testing scripts in the form of screenshots or text files containing terminal outputs.
+## Artifacts, logs, and submission evidence
 
-2. **Phase 2:**
-   - Completed Python script (`agentic_workflow.py`) which implements the agentic workflow for technical project management for the email router product specification.
-   - Output from the agentic workflow in the form of screenshots or a text file containing the terminal output.
+- This repo exports run outputs to `artifacts/` (for evaluator evidence).
+- Logging is implemented in `src/utils.py` via `export_log(...)`.
+- Each script appends its output to its own log file, e.g.:
+  - `artifacts/agentic_workflow.py.log`
+  - `artifacts/direct_prompt_agent.py.log`
+  - `artifacts/augmented_prompt_agent.py.log`
+  - `artifacts/knowledge_augmented_prompt_agent.py.log`
+  - `artifacts/rag_knowledge_prompt_agent.py.log`
+  - `artifacts/evaluation_agent.py.log`
+  - `artifacts/routing_agent.py.log`
+  - `artifacts/action_planning_agent.py.log`
 
-## References
-
-You can find more information about technical project management by following the links given here:
-- [What Is a Technical Project Manager?](https://www.wrike.com/project-management-guide/faq/what-is-a-technical-project-manager/)
-- [Epic vs Feature vs User Story: Understanding the Hierarchy](https://www.google.com/search?q=https://agilemania.com/epic-vs-feature-vs-user-story%23:~:text%3DEpics%2520set%2520the%2520overall%2520direction,Feature%252C%2520focusing%2520on%2520user%2520needs.)
-- [What are Epics and Features?](https://www.scrum.org/resources/blog/what-are-epics-and-features)
-- [Product Backlog](https://www.mountaingoatsoftware.com/agile/scrum/scrum-tools/product-backlog)
-- [What is a task in Agile?](https://agility.ac/frequent-agile-questions/what-is-a-task)
-
-You'll be drawing upon your LLM prompting skills, your knowledge of agentic workflows, and your Python programming skills to bring this solution to life. Ready to show InnovateNext Solutions how AI can revolutionize their entire approach to project management, starting with the Email Router? Let's architect the future of project management!
