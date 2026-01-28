@@ -447,15 +447,33 @@ class ActionPlanningAgent:
         # Provide the following system prompt along with the user's prompt:
         # "You are an action planning agent. Using your knowledge, you extract from the user prompt the steps requested to complete the action the user is asking for. You return the steps as a list. Only return the steps in your knowledge. Forget any previous context. This is your knowledge: {pass the knowledge here}"
 
+        # system_prompt = f"""You are an action planning agent. 
+        # Using your knowledge, you extract from the user prompt the steps requested to complete the action the user is asking for. 
+        # You return the steps as a list. Only return steps in your knowledge. 
+        # Output Example: ['1. step 1.', '2. step 2.', '3. step n.']
+        # In the output. avoid any other text that is not part of the steps, for instance, introductory texts such as :'To determine the development', ' You would need to follow these steps', etc
+        # Forget any previous context. 
+        # This is your knowledge: {self.knowledge} """
+
         system_prompt = f"""You are an action planning agent. 
         Using your knowledge, you extract from the user prompt the steps requested to complete the action the user is asking for. 
-        You return the steps as a list. Only return the steps in your knowledge. 
+
+        You MUST extract MULTIPLE sequential steps. Break down the action into separate numbered steps.
+
+        Return the steps as a numbered list, one step per line:
+        1. First step
+        2. Second step  
+        3. Third step
+        ...
+
+        Do NOT include any introductory or explanatory text. Only return the numbered steps.
         Forget any previous context. 
-        This is your knowledge: {self.knowledge} """
+        This is your knowledge: {self.knowledge}"""
 
         # TODO: 4 - Extract the response text from the OpenAI API response
         response=  client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            # model="gpt-3.5-turbo",
+            model="gpt-4.1",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
@@ -466,5 +484,6 @@ class ActionPlanningAgent:
         response_text = response.choices[0].message.content
         # TODO: 5 - Clean and format the extracted steps by removing empty lines and unwanted text
         steps = response_text.split("\n")
+        steps = [step.strip() for step in steps if step.strip()]
 
         return steps
