@@ -147,17 +147,36 @@ routing_agent = RoutingAgent(openai_api_key, {})
 agents = [
     {
         "name": "product manager agent",
-        "description": "Define user stories for a product from a product specification",
+        "description": (
+            "SPECIALIST IN USER STORIES ONLY. "
+            "Creates sentences strictly in the format: "
+            "'As a [persona], I want [action] so that [value]'. "
+            "Focuses on users, problems, needs, and business value. "
+            "DO NOT create features, groups, or technical tasks."
+            ),
         "func": lambda x: product_manager_support_function(x)  # Will be defined in TODO 11
     },
     {
         "name": "program manager agent",
-        "description": "Define product features by organizing user stories into cohesive groups",
+        "description":  (
+            "SPECIALIST IN PRODUCT FEATURES ONLY. "
+            "Transforms multiple user stories into structured features with: "
+            "Feature Name, Description, Key Functionality, User Benefit. "
+            "DO NOT write user story sentences. "
+            "DO NOT create engineering tasks or technical implementation."
+            ),
         "func": lambda x: program_manager_support_function(x)  # Will be defined in TODO 11
     },
     {
         "name": "development engineer agent",
-        "description": "Define development tasks by identifying what needs to be built to implement user stories",
+        "description": (
+            "SPECIALIST IN ENGINEERING TASKS ONLY. "
+            "Produces technical tasks with: Task ID, Related User Story, "
+            "Acceptance Criteria, Effort, Dependencies. "
+            "Focuses on code, APIs, data models, tests, infrastructure. "
+            "DO NOT create user stories. "
+            "DO NOT define product features."
+            ),
         "func": lambda x: development_engineer_support_function(x)  # Will be defined in TODO 11
     }
 ]

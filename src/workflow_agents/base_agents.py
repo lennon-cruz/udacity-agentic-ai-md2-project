@@ -472,8 +472,8 @@ class ActionPlanningAgent:
 
         # TODO: 4 - Extract the response text from the OpenAI API response
         response=  client.chat.completions.create(
-            # model="gpt-3.5-turbo",
-            model="gpt-4.1",
+            model="gpt-3.5-turbo",
+            # model="gpt-4.1",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
